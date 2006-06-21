@@ -1,0 +1,105 @@
+%{!?release_func:%global release_func() %1%{?dist}}
+
+Name:		%ELITO_RPMNAME setup
+Version:	0.6
+Release:	%release_func 1
+Summary:	Setup for elito-environment
+
+Group:		%ELITO_GROUP Development
+License:	proprietary
+Source100:	configure.cache.arm-xscale-linux-gnu
+Source101:	configure.cache.arm-xscale-linux-uclibc
+Source102:	configure.cache.arm-xscale_softfloat-linux-gnu
+Source103:	configure.cache.arm-xscale_softfloat-linux-uclibc
+Source104:	configure.cache.x86_64-linux-gnu
+Source105:	configure.cache.x86_64-linux-uclibc
+Source200:	cflags.arm-xscale-linux-uclibc
+Source201:	cflags.arm-xscale-linux-gnu
+Source202:	cflags.arm-xscale_softfloat-linux-uclibc
+Source203:	cflags.arm-xscale_softfloat-linux-gnu
+Source204:	cflags.x86_64-linux-gnu
+Source205:	cflags.x86_64-linux-uclibc
+Source300:	configure.arm-xscale-linux-uclibc
+BuildRoot:	%_tmppath/%name-%version-%release-root-%(%__id_u -n)
+
+BuildRequires:	elito-buildroot
+Requires:	elito-buildroot
+
+%if 0%{!?_with_bootstrap:1}
+%package tools
+Summary:	Base tools for ELiTo environments
+Group:		%ELITO_GROUP System Environment/Base
+Source0:	init-wrapper.c
+Source1:	redir-outerr.c
+Source2:	sysctl.minit.c
+BuildRequires:	%{ELITO_RPMNAME dietlibc}
+%ELITOSYS_HEADERS
+
+
+%ELITO_COMMON
+%ELITO_FSSETUP
+
+
+%description tools
+%endif
+
+
+%description
+
+
+%if 0%{!?_with_bootstrap:1}
+%prep
+%setup -T -c
+
+
+%build
+%elitoarch-diet -Os %__elito_cc %elito_cflags -Wall -W -std=c99 %SOURCE0 -o init.wrapper
+%elitoarch-diet -Os %__elito_cc %elito_cflags -Wall -W -std=c99 %SOURCE1 -o redir-outerr
+%elitoarch-diet -Os %__elito_cc %elito_cflags -Wall -W -std=c99 %SOURCE2 -o sysctl.minit
+%endif
+
+%install
+rm -rf $RPM_BUILD_ROOT
+
+mkdir -p $RPM_BUILD_ROOT{%_elito_sysconfdir,%_elitosys_sbindir,%_elitosys_bindir}
+
+f=%_sourcedir/configure.cache.%elitoarch
+sed -e 's!@ELITO_BINDIR@!%_elito_bindir!g' \
+	$f >$RPM_BUILD_ROOT%_elito_sysconfdir/configure.cache
+chmod 0644 $RPM_BUILD_ROOT%_elito_sysconfdir/configure.cache
+
+for i in cflags cxxflags ldflags configure; do
+	f=%_sourcedir/$i.%elitoarch
+	test -e "$f" || continue
+	install -p -m0644 "$f" $RPM_BUILD_ROOT%_elito_sysconfdir/build.$i
+done
+
+
+%if 0%{!?_with_bootstrap:1}
+install -p -m0755 init.wrapper sysctl.minit $RPM_BUILD_ROOT%_elitosys_sbindir/
+install -p -m0755 redir-outerr              $RPM_BUILD_ROOT%_elitosys_bindir/
+
+%elito_installfixup fssetup
+%endif
+
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+
+%files
+%defattr(-,root,root,-)
+%_elito_sysconfdir/*
+
+
+%if 0%{!?_with_bootstrap:1}
+%files tools
+  %defattr(-,root,root,-)
+  %_elitosys_sbindir/*
+  %_elitosys_bindir/*
+%endif
+
+%changelog
+* Thu Apr 20 2006 Enrico Scholz <enrico.scholz@sigma-chemnitz.de> - 0.6-1
+- added configuration for softfloat targets
+
