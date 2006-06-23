@@ -1,7 +1,7 @@
 %{!?release_func:%global release_func() %1%{?dist}}
 
 Name:		%ELITO_RPMNAME setup
-Version:	0.6
+Version:	0.7
 Release:	%release_func 1
 Summary:	Setup for elito-environment
 
@@ -100,6 +100,8 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Fri Jun 23 2006 Enrico Scholz <enrico.scholz@sigma-chemnitz.de> - 0.7-1
+- enlarged initial /dev to 128k
+
 * Thu Apr 20 2006 Enrico Scholz <enrico.scholz@sigma-chemnitz.de> - 0.6-1
 - added configuration for softfloat targets
-
