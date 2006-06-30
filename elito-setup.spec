@@ -2,7 +2,7 @@
 
 Name:		%ELITO_RPMNAME setup
 Version:	0.7
-Release:	%release_func 1
+Release:	%release_func 3
 Summary:	Setup for elito-environment
 
 Group:		%ELITO_GROUP Development
@@ -100,6 +100,12 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Mon Jun 26 2006 Enrico Scholz <enrico.scholz@sigma-chemnitz.de> - 0.7-3
+- rebuilt with new dietlibc
+
+* Fri Jun 23 2006 Enrico Scholz <enrico.scholz@sigma-chemnitz.de> - 0.7-2
+- enlarged initial /dev to 256k
+
 * Fri Jun 23 2006 Enrico Scholz <enrico.scholz@sigma-chemnitz.de> - 0.7-1
 - enlarged initial /dev to 128k
 
