@@ -9,7 +9,7 @@
 
 int main()
 {
-  if (mount("none", "/dev", "tmpfs", 0, "size=128k")==-1 ||
+  if (mount("none", "/dev", "tmpfs", 0, "size=256k")==-1 ||
       mknod("/dev/console", 0600 | S_IFCHR, makedev(5,1))==-1 ||
       (close(0),close(1),close(2), 0) ||
       open("/dev/console", O_RDONLY)==-1 ||
