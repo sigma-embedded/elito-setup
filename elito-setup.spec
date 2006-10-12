@@ -1,26 +1,32 @@
 %{!?release_func:%global release_func() %1%{?dist}}
 
+%if 0%{?elitoeabi}
+%undefine	with_dietlibc
+%else
+%{!?_without_dietlibc:%global	with_dietlibc}
+%endif
+
 Name:		%ELITO_RPMNAME setup
 Version:	0.7
-Release:	%release_func 5
+Release:	%release_func 
 Summary:	Setup for elito-environment
 
 Group:		%ELITO_GROUP Development
 License:	proprietary
 Source100:	configure.cache.arm-xscale-linux-gnu
 Source101:	configure.cache.arm-xscale-linux-uclibc
-Source102:	configure.cache.arm-xscale_softfloat-linux-gnu
-Source103:	configure.cache.arm-xscale_softfloat-linux-uclibc
-Source104:	configure.cache.x86_64-linux-gnu
-Source105:	configure.cache.x86_64-linux-uclibc
-Source200:	cflags.arm-xscale-linux-uclibc
-Source201:	cflags.arm-xscale-linux-gnu
-Source202:	cflags.arm-xscale_softfloat-linux-uclibc
-Source203:	cflags.arm-xscale_softfloat-linux-gnu
-Source204:	cflags.x86_64-linux-gnu
-Source205:	cflags.x86_64-linux-uclibc
+Source102:	configure.cache.arm-iwmmxt-linux-gnueabi
+Source103:	configure.cache.arm-iwmmxt-linux-uclibceabi
+Source110:	configure.cache.x86_64-linux-gnu
+Source111:	configure.cache.x86_64-linux-uclibc
+Source200:	cflags.arm-xscale-linux-gnu
+Source201:	cflags.arm-xscale-linux-uclibc
+Source202:	cflags.arm-iwmmxt-linux-gnueabi
+Source203:	cflags.arm-iwmmxt-linux-uclibceabi
+Source210:	cflags.x86_64-linux-gnu
+Source211:	cflags.x86_64-linux-uclibc
 Source300:	configure.arm-xscale-linux-uclibc
-BuildRoot:	%_tmppath/%name-%version-%release-root-%(%__id_u -n)
+BuildRoot:	%_tmppath/%name-%version-%release-root
 
 BuildRequires:	elito-buildroot
 Requires:	elito-buildroot
@@ -32,7 +38,7 @@ Group:		%ELITO_GROUP System Environment/Base
 Source0:	init-wrapper.c
 Source1:	redir-outerr.c
 Source2:	sysctl.minit.c
-BuildRequires:	%{ELITO_RPMNAME dietlibc}
+%{?with_dietlibc:BuildRequires:	%{ELITO_RPMNAME dietlibc}}
 %ELITOSYS_HEADERS
 
 
@@ -53,9 +59,10 @@ BuildRequires:	%{ELITO_RPMNAME dietlibc}
 
 
 %build
-%elitoarch-diet -Os %__elito_cc %elito_cflags -Wall -W -std=c99 %SOURCE0 -o init.wrapper
-%elitoarch-diet -Os %__elito_cc %elito_cflags -Wall -W -std=c99 %SOURCE1 -o redir-outerr
-%elitoarch-diet -Os %__elito_cc %elito_cflags -Wall -W -std=c99 %SOURCE2 -o sysctl.minit
+D='%{?with_dietlibc:%elitoarch-diet -Os}'
+$D %__elito_cc %elito_cflags -Wall -W -std=c99 %SOURCE0 -o init.wrapper
+$D %__elito_cc %elito_cflags -Wall -W -std=c99 %SOURCE1 -o redir-outerr
+$D %__elito_cc %elito_cflags -Wall -W -std=c99 %SOURCE2 -o sysctl.minit
 %endif
 
 %install
@@ -100,6 +107,10 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Thu Oct 12 2006 Enrico Scholz <enrico.scholz@sigma-chemnitz.de> - 0.7-6
+- added support for arm-iwmmxt platform
+- allowed to build without dietlibc (required for iwmmxt)
+
 * Fri Jul 21 2006 Enrico Scholz <enrico.scholz@sigma-chemnitz.de> - 0.7-5
 - rebuilt
 

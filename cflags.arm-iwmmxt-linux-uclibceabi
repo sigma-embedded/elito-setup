@@ -1,0 +1,5 @@
+-Os
+-fomit-frame-pointer
+-mcpu=iwmmxt
+-mabi=iwmmxt
+-g2
