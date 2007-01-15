@@ -8,7 +8,7 @@
 
 Name:		%ELITO_RPMNAME setup
 Version:	0.7
-Release:	%release_func 
+Release:	%release_func 7
 Summary:	Setup for elito-environment
 
 Group:		%ELITO_GROUP Development
@@ -107,6 +107,9 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Mon Jan 15 2007 Enrico Scholz <enrico.scholz@sigma-chemnitz.de> - 0.7-7
+- rebuilt
+
 * Thu Oct 12 2006 Enrico Scholz <enrico.scholz@sigma-chemnitz.de> - 0.7-6
 - added support for arm-iwmmxt platform
 - allowed to build without dietlibc (required for iwmmxt)
