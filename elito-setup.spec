@@ -8,7 +8,7 @@
 
 Name:		%ELITO_RPMNAME setup
 Version:	0.7
-Release:	%release_func 8
+Release:	%release_func 9
 Summary:	Setup for elito-environment
 
 Group:		%ELITO_GROUP Development
@@ -107,6 +107,9 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Tue May 15 2007 Enrico Scholz <enrico.scholz@sigma-chemnitz.de> - 0.7-9
+- rebuilt
+
 * Wed May  9 2007 Enrico Scholz <enrico.scholz@sigma-chemnitz.de> - 0.7-8
 - rebuilt
 
