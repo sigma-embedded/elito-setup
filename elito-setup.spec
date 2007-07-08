@@ -1,14 +1,14 @@
-%{!?release_func:%global release_func() %1%{?dist}}
+[5~[5~%{!?release_func:%global release_func() %1%{?dist}}
 
 %if 0%{?elitoeabi}
 %undefine	with_dietlibc
 %else
-%{!?_without_dietlibc:%global	with_dietlibc}
+%{!?_without_dietlibc:%global	with_dietlibc	with-dietlibc}
 %endif
 
 Name:		%ELITO_RPMNAME setup
 Version:	0.7
-Release:	%release_func 10
+Release:	%release_func 11
 Summary:	Setup for elito-environment
 
 Group:		%ELITO_GROUP Development
@@ -107,6 +107,9 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Sun Jul  8 2007 Enrico Scholz <enrico.scholz@sigma-chemnitz.de> - 0.7-11
+- fixed dietlibc macros
+
 * Sun Jul  8 2007 Enrico Scholz <enrico.scholz@sigma-chemnitz.de> - 0.7-10
 - rebuilt
 
