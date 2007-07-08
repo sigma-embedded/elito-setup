@@ -1,4 +1,4 @@
-[5~[5~%{!?release_func:%global release_func() %1%{?dist}}
+%{!?release_func:%global release_func() %1%{?dist}}
 
 %if 0%{?elitoeabi}
 %undefine	with_dietlibc
