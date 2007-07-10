@@ -8,7 +8,7 @@
 
 Name:		%ELITO_RPMNAME setup
 Version:	0.7
-Release:	%release_func 11
+Release:	%release_func 11.1
 Summary:	Setup for elito-environment
 
 Group:		%ELITO_GROUP Development
