@@ -1,1 +1,1 @@
-include $(VPATH)../common/Makefile.common
+include ../common/Makefile.common
