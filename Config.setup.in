@@ -1,0 +1,11 @@
+dnl --*- autoconf -*--
+
+ADD_ITEM([Basesystem/INITWRAPPER],[INITCHOICE_FOOT],[INIT_FOOT],[
+config INIT_WRAPPER
+	bool "Create a wrapper around /sbin/init"
+	default y if NFS_BOOT
+	help
+	  Create a wrapper around /sbin/init which creates a minimal,
+	  initial /dev and attaches to the console. This might be
+	  needed for NFS boots
+])
