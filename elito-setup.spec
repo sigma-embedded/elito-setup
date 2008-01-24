@@ -8,7 +8,7 @@
 
 Name:		%ELITO_RPMNAME setup
 Version:	0.7
-Release:	%release_func 12
+Release:	%release_func 13
 Summary:	Setup for elito-environment
 
 Group:		%ELITO_GROUP Development
@@ -30,6 +30,9 @@ BuildRoot:	%_tmppath/%name-%version-%release-root
 
 BuildRequires:	elito-buildroot
 Requires:	elito-buildroot
+
+%{?_with_bootstrap:BuildArch:	noarch}
+
 
 %if 0%{!?_with_bootstrap:1}
 %package tools
@@ -107,8 +110,8 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
-* Thu Jan 24 2008 Enrico Scholz <enrico.scholz@sigma-chemnitz.de> - 0.7-12
-- rebuilt
+* Thu Jan 24 2008 Enrico Scholz <enrico.scholz@sigma-chemnitz.de> - 0.7-13
+- made it noarch for bootstrap builds
 
 * Sun Jul  8 2007 Enrico Scholz <enrico.scholz@sigma-chemnitz.de> - 0.7-11
 - fixed dietlibc macros
