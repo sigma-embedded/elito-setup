@@ -8,7 +8,7 @@
 
 Name:		%ELITO_RPMNAME setup
 Version:	0.7
-Release:	%release_func 13
+Release:	%release_func 14
 Summary:	Setup for elito-environment
 
 Group:		%ELITO_GROUP Development
@@ -110,6 +110,9 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Mon Jan 28 2008 Enrico Scholz <enrico.scholz@sigma-chemnitz.de> - 0.7-14
+- added ac_cv_func_realloc_0_nonnull value
+
 * Thu Jan 24 2008 Enrico Scholz <enrico.scholz@sigma-chemnitz.de> - 0.7-13
 - made it noarch for bootstrap builds
 

@@ -5,6 +5,7 @@ ac_cv_func_posix_getpwuid_r=yes
 ac_cv_func_printf_unix98=yes
 ac_cv_func_snprintf_c99=yes
 ac_cv_func_vsnprintf_c99=yes
+ac_cv_func_realloc_0_nonnull=yes
 
 bash_cv_dup2_broken=no
 bash_cv_fnm_extmatch=yes
