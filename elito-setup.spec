@@ -8,7 +8,7 @@
 
 Name:		%ELITO_RPMNAME setup
 Version:	0.7
-Release:	%release_func 14
+Release:	%release_func 15
 Summary:	Setup for elito-environment
 
 Group:		%ELITO_GROUP Development
@@ -31,7 +31,7 @@ BuildRoot:	%_tmppath/%name-%version-%release-root
 BuildRequires:	elito-buildroot
 Requires:	elito-buildroot
 
-%{?_with_bootstrap:BuildArch:	noarch}
+BuildArch:	noarch
 
 
 %if 0%{!?_with_bootstrap:1}
@@ -63,9 +63,9 @@ Source2:	sysctl.minit.c
 
 %build
 D='%{?with_dietlibc:%elitoarch-diet -Os}'
-$D %__elito_cc %elito_cflags -Wall -W -std=c99 %SOURCE0 -o init.wrapper
-$D %__elito_cc %elito_cflags -Wall -W -std=c99 %SOURCE1 -o redir-outerr
-$D %__elito_cc %elito_cflags -Wall -W -std=c99 %SOURCE2 -o sysctl.minit
+$D %__elito_cc %elito_cflags %elito_ldflags -Wall -W -std=c99 %SOURCE0 -o init.wrapper
+$D %__elito_cc %elito_cflags %elito_ldflags -Wall -W -std=c99 %SOURCE1 -o redir-outerr
+$D %__elito_cc %elito_cflags %elito_ldflags -Wall -W -std=c99 %SOURCE2 -o sysctl.minit
 %endif
 
 %install
@@ -110,6 +110,9 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Thu Jan 31 2008 Enrico Scholz <enrico.scholz@sigma-chemnitz.de> - 0.7-15
+- rebuilt as noarch
+
 * Mon Jan 28 2008 Enrico Scholz <enrico.scholz@sigma-chemnitz.de> - 0.7-14
 - added ac_cv_func_realloc_0_nonnull value
 
