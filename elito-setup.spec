@@ -8,7 +8,7 @@
 
 Name:		%ELITO_RPMNAME setup
 Version:	0.7
-Release:	%release_func 17
+Release:	%release_func 18
 Summary:	Setup for elito-environment
 
 Group:		%ELITO_GROUP Development
@@ -42,6 +42,7 @@ Source0:	init-wrapper.c
 Source1:	redir-outerr.c
 Source2:	sysctl.minit.c
 Source3:	elito-genfiles.c
+Source4:	elito-wait-for-file.c
 %{?with_dietlibc:BuildRequires:	%{ELITO_RPMNAME dietlibc}}
 %ELITOSYS_HEADERS
 
@@ -68,6 +69,7 @@ $D %__elito_cc %elito_cflags %elito_ldflags -Wall -W -std=c99 %SOURCE0 -o init.w
 $D %__elito_cc %elito_cflags %elito_ldflags -Wall -W -std=c99 %SOURCE1 -o redir-outerr
 $D %__elito_cc %elito_cflags %elito_ldflags -Wall -W -std=c99 %SOURCE2 -o sysctl.minit
 $D %__elito_cc %elito_cflags %elito_ldflags -Wall -W -std=c99 %SOURCE3 -o elito-genfiles
+$D %__elito_cc %elito_cflags %elito_ldflags -Wall -W -std=c99 %SOURCE4 -o elito-wait-for-file
 %endif
 
 %install
@@ -89,7 +91,9 @@ done
 
 %if 0%{!?_with_bootstrap:1}
 install -p -m0755 init.wrapper sysctl.minit   $RPM_BUILD_ROOT%_elitosys_sbindir/
-install -p -m0755 redir-outerr elito-genfiles $RPM_BUILD_ROOT%_elitosys_bindir/
+install -p -m0755 \
+	redir-outerr elito-genfiles elito-wait-for-file \
+	$RPM_BUILD_ROOT%_elitosys_bindir/
 
 %elito_installfixup fssetup
 %endif
@@ -112,6 +116,9 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Tue Apr 22 2008 Enrico Scholz <enrico.scholz@sigma-chemnitz.de> - 0.7-18
+- added elito-wait-for-file tool
+
 * Tue Apr 22 2008 Enrico Scholz <enrico.scholz@sigma-chemnitz.de> - 0.7-17
 - added elito-genfiles tool
 
