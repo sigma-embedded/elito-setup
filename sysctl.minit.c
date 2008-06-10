@@ -9,7 +9,7 @@
 int main(int argc, char *argv[])
 {
   int			i;
-  
+
   if (argc%2 != 1) {
     WRITE_MSG(2, "Bad parameter count\n");
     return EXIT_FAILURE;
@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
     else if (write(fd, argv[i+1], strlen(argv[i+1]))==-1 ||
 	     write(fd, "\n", 1)!=1)
       err_pos = "write";
-    
+
 
     if (err_pos!=0) {
       size_t	l0 = strlen(err_pos);
@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
       strcat(msg, "(");
       strcat(msg, argv[i]);
       strcat(msg, ")");
-      
+
       perror(msg);
     }
 
