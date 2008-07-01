@@ -77,7 +77,7 @@ $D %__elito_cc %elito_cflags %elito_ldflags -Wall -W -std=c99 %SOURCE4 -o elito-
 %install
 rm -rf $RPM_BUILD_ROOT
 
-mkdir -p $RPM_BUILD_ROOT{%_elito_sysconfdir/files.d,%_elitosys_sbindir,%_elitosys_bindir}
+mkdir -p $RPM_BUILD_ROOT{%_elito_sysconfdir,%_elitosys_sbindir,%_elitosys_bindir,%_elitosys_sysconfdir/files.d}
 
 f=%_sourcedir/configure.cache.%elitoarch
 sed -e 's!@ELITO_BINDIR@!%_elito_bindir!g' \
@@ -94,13 +94,13 @@ done
 %if 0%{!?_with_bootstrap:1}
 install -p -m0755 \
 	init.wrapper sysctl.minit  	\
-	%{SOURCE5}			\
+	%SOURCE5			\
 	$RPM_BUILD_ROOT%_elitosys_sbindir/
 install -p -m0755 \
 	redir-outerr elito-genfiles elito-wait-for-file \
 	$RPM_BUILD_ROOT%_elitosys_bindir/
 
-install -p -m0644 %{SOURCE10} $RPM_BUILD_ROOT%_elito_sysconfdir/files.d/
+install -p -m0644 %SOURCE10 $RPM_BUILD_ROOT%_elitosys_sysconfdir/files.d/
 %elito_installfixup fssetup
 %endif
 
