@@ -1,4 +1,3 @@
 -Os
--fomit-frame-pointer
 -mcpu=xscale
 -g2
