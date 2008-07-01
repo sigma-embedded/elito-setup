@@ -1,0 +1,15 @@
+#! /bin/sh
+        
+for i; do
+	test -e "$i" || continue
+
+	while read mod; do
+		case $mod in
+		#*)     continue;;
+		--settle)	/sbin/udevadm settle;;
+		*)      
+			echo "Loading '$mod'"
+			/sbin/modprobe "$mod" ;;
+		esac
+	done < "$i"
+done
