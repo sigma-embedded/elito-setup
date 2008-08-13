@@ -5,3 +5,4 @@ dir	/var/state	0755	0 0
 dir	/var/lib	0755	0 0
 dir	/var/lock	0755	0 0
 dir	/var/cache	0755	0 0
+dir	/var/spool	0755	0 0

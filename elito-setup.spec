@@ -8,7 +8,7 @@
 
 Name:		%ELITO_RPMNAME setup
 Version:	0.8
-Release:	%release_func 1
+Release:	%release_func 2
 Summary:	Setup for elito-environment
 
 Group:		%ELITO_GROUP Development
@@ -123,6 +123,9 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Wed Aug 13 2008 Enrico Scholz <enrico.scholz@sigma-chemnitz.de> - 0.8-2
+- added '/var/spool' to list of directories created at startup
+
 * Tue Jul  1 2008 Enrico Scholz <enrico.scholz@sigma-chemnitz.de> - 0.8-1
 - added elito-load-modules and etc/files.d/ files
 - removed '-fomit-frame-pointer' from default compiler flags
