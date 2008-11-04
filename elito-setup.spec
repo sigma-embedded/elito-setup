@@ -38,7 +38,7 @@ BuildArch:	noarch
 %package tools
 Summary:	Base tools for ELiTo environments
 Group:		%ELITO_GROUP System Environment/Base
-Source0:	init-wrapper.c
+Source0:	init.wrapper.c
 Source1:	redir-outerr.c
 Source2:	sysctl.minit.c
 Source3:	elito-genfiles.c
