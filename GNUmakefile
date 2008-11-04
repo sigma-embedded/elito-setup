@@ -31,10 +31,22 @@ _sbin_targets =		$(addprefix $(DESTDIR)$(sbindir)/,$(sbin_targets))
 _files_targets =	$(addprefix $(DESTDIR)$(filesdir)/,$(files_targets))
 _targets =		$(_bin_targets) $(_sbin_targets) $(_files_targets)
 
+DIST_FILES =		$(addsuffix .c,$(diet_progs))	\
+			00-varfs.txt			\
+			elito-load-modules		\
+			GNUmakefile
+export DIST_FILES
+
 all:	$(diet_progs)
 
 install:	${_targets}
 	echo $<
+
+dist:
+	$(MAKE) -f Makefile dist
+
+%:
+	$(MAKE) -f Makefile $@
 
 $(_bin_targets): $(DESTDIR)$(bindir)/% : %
 	$(INSTALL_PROG) '$<' '$@'
