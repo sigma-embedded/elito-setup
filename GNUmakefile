@@ -3,8 +3,8 @@ sbindir =	/sbin
 filesdir =	/etc/files.d
 
 INSTALL =	install
-INSTALL_PROG =	$(INSTALL) -D -p -m755
-INSTALL_DATA =	$(INSTALL) -D -p -m644
+INSTALL_PROG =	$(INSTALL) -D -p -m 0755
+INSTALL_DATA =	$(INSTALL) -D -p -m 0644
 
 diet_progs =			\
 	elito-genfiles		\
@@ -42,10 +42,7 @@ all:	$(diet_progs)
 install:	${_targets}
 	echo $<
 
-dist:
-	$(MAKE) -f Makefile dist
-
-%:
+tag build clean dist:
 	$(MAKE) -f Makefile $@
 
 $(_bin_targets): $(DESTDIR)$(bindir)/% : %
