@@ -6,6 +6,8 @@ INSTALL =	install
 INSTALL_PROG =	$(INSTALL) -D -p -m 0755
 INSTALL_DATA =	$(INSTALL) -D -p -m 0644
 
+CFLAGS = -Wall -W -std=gnu99 -Wp,-D_FORTIFY_SOURCE=2
+
 diet_progs =			\
 	elito-genfiles		\
 	elito-wait-for-file	\
@@ -41,6 +43,10 @@ all:	$(diet_progs)
 
 install:	${_targets}
 	echo $<
+
+clean:	local-clean
+local-clean:
+	rm -f ${diet_progs} 
 
 tag build clean dist:
 	$(MAKE) -f Makefile $@
