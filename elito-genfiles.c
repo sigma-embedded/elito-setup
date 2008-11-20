@@ -28,6 +28,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
+#include <grp.h>
+#include <pwd.h>
+
 #include <sys/stat.h>
 #include <sys/mman.h>
 
@@ -114,10 +117,37 @@ token_get_multiple(char const *buf, char const *end_buf, struct token *res, size
 }
 
 static unsigned long
-token_to_uint(struct token const *tk, int base)
+get_uid(char const *uid)
+{
+	struct passwd const	*pw = getpwnam(uid);
+	if (pw)
+		return pw->pw_uid;
+	else
+		return (unsigned long)-1;
+}
+
+static unsigned long
+get_gid(char const *gid)
+{
+	struct group const	*gr = getgrnam(gid);
+	if (gr)
+		return gr->gr_gid;
+	else
+		return (unsigned long)-1;
+}
+
+static unsigned long
+token_to_uint(struct token const *tk, int base, unsigned long (*xform)(char const *))
 {
 	char const		*tmp = strndupa(tk->ptr, tk->len);
-	return strtoul(tmp, NULL, base);
+	char			*err;
+	unsigned long		res;
+
+	res = strtoul(tmp, &err, base);
+	if (*err && xform)
+		res = xform(tmp);
+	
+	return res;
 }
 
 static char const *
@@ -136,9 +166,9 @@ do_file(char const *buf, char const *end_buf)
 		return NULL;
 
 	name = strndupa(args[0].ptr, args[0].len);
-	mode = token_to_uint(args+1, 8);
-	uid  = token_to_uint(args+2, 10);
-	gid  = token_to_uint(args+3, 10);
+	mode = token_to_uint(args+1, 8, NULL);
+	uid  = token_to_uint(args+2, 10, get_uid);
+	gid  = token_to_uint(args+3, 10, get_gid);
 
 	fd = open(name, O_WRONLY|O_NOFOLLOW|O_CREAT|O_EXCL, mode);
 	if (fd<0) {
@@ -170,9 +200,9 @@ do_dir(char const *buf, char const *end_buf)
 		return NULL;
 
 	name = strndupa(args[0].ptr, args[0].len);
-	mode = token_to_uint(args+1, 8);
-	uid  = token_to_uint(args+2, 10);
-	gid  = token_to_uint(args+3, 10);
+	mode = token_to_uint(args+1, 8, NULL);
+	uid  = token_to_uint(args+2, 10, get_uid);
+	gid  = token_to_uint(args+3, 10, get_gid);
 
 	if (mkdir(name, mode)<0) {
 		xperror("mkdir(<dir>)");
@@ -207,13 +237,13 @@ do_node(char const *buf, char const *end_buf)
 	}
 
 	name = strndupa(args[0].ptr, args[0].len);
-	mode = token_to_uint(args+1, 8);
-	uid  = token_to_uint(args+2, 10);
-	gid  = token_to_uint(args+3, 10);
+	mode = token_to_uint(args+1, 8, NULL);
+	uid  = token_to_uint(args+2, 10, get_uid);
+	gid  = token_to_uint(args+3, 10, get_gid);
 	dev  = (args[4].ptr[0]=='c' ? S_IFCHR :
 		args[4].ptr[0]=='b' ? S_IFBLK : S_IFBLK) |
-		makedev(token_to_uint(args+5, 0),
-			token_to_uint(args+6, 0));
+		makedev(token_to_uint(args+5, 0, NULL),
+			token_to_uint(args+6, 0, NULL));
 
 	if (mknod(name, mode, dev)<0) {
 		xperror("mknod(<nod>)");
@@ -243,8 +273,8 @@ do_slink(char const *buf, char const *end_buf)
 
 	src  = strndupa(args[0].ptr, args[0].len);
 	dst  = strndupa(args[1].ptr, args[1].len);
-	uid  = token_to_uint(args+2, 10);
-	gid  = token_to_uint(args+3, 10);
+	uid  = token_to_uint(args+2, 10, get_uid);
+	gid  = token_to_uint(args+3, 10, get_gid);
 
 	if (symlink(src, dst)<0) {
 		xperror("symlink(<slink>");
@@ -273,9 +303,9 @@ do_pipe(char const *buf, char const *end_buf)
 		return NULL;
 
 	name = strndupa(args[0].ptr, args[0].len);
-	mode = token_to_uint(args+1, 8);
-	uid  = token_to_uint(args+2, 10);
-	gid  = token_to_uint(args+3, 10);
+	mode = token_to_uint(args+1, 8, NULL);
+	uid  = token_to_uint(args+2, 10, get_uid);
+	gid  = token_to_uint(args+3, 10, get_gid);
 
 	if (mkfifo(name, mode)<0) {
 		xperror("mkfifo(<pipe>)");
