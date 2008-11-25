@@ -30,6 +30,7 @@
 #include <errno.h>
 #include <grp.h>
 #include <pwd.h>
+#include <sys/stat.h>
 
 #include <sys/stat.h>
 #include <sys/mman.h>
@@ -408,6 +409,7 @@ int main(int argc, char *argv[])
 {
 	int	idx;
 
+	umask(0);
 	for (idx=1; idx<argc; ++idx) {
 		size_t		i;
 		glob_t		globbuf;
