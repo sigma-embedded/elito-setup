@@ -7,7 +7,7 @@
 %endif
 
 Name:		%ELITO_RPMNAME setup
-Version:	0.8.1
+Version:	0.8.7
 Release:	%release_func 1
 Summary:	Setup for elito-environment
 
@@ -123,6 +123,9 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Tue Aug 11 2009 Enrico Scholz <enrico.scholz@sigma-chemnitz.de> - 0.8.7-1
+- added lastlog, wtmp + utmp files
+
 * Wed Aug 13 2008 Enrico Scholz <enrico.scholz@sigma-chemnitz.de> - 0.8-2
 - added '/var/spool' to list of directories created at startup
 

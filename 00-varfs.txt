@@ -7,3 +7,7 @@ dir	/var/lib/boot	0755	0 0
 dir	/var/lock	0755	0 0
 dir	/var/cache	0755	0 0
 dir	/var/spool	0755	0 0
+
+file	/var/log/lastlog	0755 0 0
+file	/var/log/wtmp		0755 0 utmp
+file	/var/run/utmp		0755 0 utmp
