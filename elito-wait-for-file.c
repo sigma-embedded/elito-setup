@@ -40,9 +40,9 @@ int main(int argc, char *argv[])
 
 	if (argc<2)
 		return EXIT_FAILURE;
-		
+
 	fd = inotify_init();
-	
+
 	if (fd<0) {
 		perror("inotify_init()");
 		return EXIT_FAILURE;
@@ -63,12 +63,12 @@ int main(int argc, char *argv[])
 		fd_set		fds;
 		int		rc;
 		char		buf[1024];
-		
+
 		if (lstat(fullname, &st)==0) {
 			found = true;
 			continue;
 		}
-		
+
 		FD_ZERO(&fds);
 		FD_SET(fd, &fds);
 

@@ -147,7 +147,7 @@ token_to_uint(struct token const *tk, int base, unsigned long (*xform)(char cons
 	res = strtoul(tmp, &err, base);
 	if (*err && xform)
 		res = xform(tmp);
-	
+
 	return res;
 }
 
@@ -257,7 +257,7 @@ do_node(char const *buf, char const *end_buf)
 	}
 
 	return buf;
-}		
+}
 
 static char const *
 do_slink(char const *buf, char const *end_buf)
@@ -289,7 +289,7 @@ do_slink(char const *buf, char const *end_buf)
 
 	return buf;
 }
-	
+
 static char const *
 do_pipe(char const *buf, char const *end_buf)
 {
@@ -384,7 +384,7 @@ handle_file(char const *name)
 
 	if (!S_ISREG(st.st_mode))
 		return;
-	
+
 	fd = open(name, O_RDONLY|O_NOCTTY);
 	if (fd<0) {
 		xperror("open()");

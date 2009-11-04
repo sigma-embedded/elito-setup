@@ -7,7 +7,7 @@
 %endif
 
 Name:		%ELITO_RPMNAME setup
-Version:	0.8.7
+Version:	0.8.8
 Release:	%release_func 1
 Summary:	Setup for elito-environment
 
