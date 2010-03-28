@@ -12,7 +12,7 @@
 #  define TMPFS_MAGIC	0x01021994
 #endif
 
-int main()
+int main(int argc, char *argv[])
 {
 	struct statfs	st;
 
@@ -31,6 +31,6 @@ int main()
 	    dup2(1,2)==-1)
 		return EXIT_FAILURE;
 
-	execl("/sbin/init.wrapped", "/sbin/init", NULL);
+	execvp("/sbin/init.wrapped", argv);
 	return EXIT_FAILURE;
 }
