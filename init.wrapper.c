@@ -16,8 +16,8 @@ int main(int argc, char *argv[])
 {
 	struct statfs	st;
 
-	seteuid(0,0);
-	setegid(0,0);
+	seteuid(0);
+	setegid(0);
 
 	if ((statfs("/dev", &st) < 0 || st.f_type != TMPFS_MAGIC) &&
 	    (mount("none", "/dev", "tmpfs", 0, "size=512k")==-1 ||
