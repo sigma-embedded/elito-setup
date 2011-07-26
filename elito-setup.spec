@@ -7,7 +7,7 @@
 %endif
 
 Name:		%ELITO_RPMNAME setup
-Version:	0.8.10
+Version:	0.9
 Release:	%release_func 1
 Summary:	Setup for elito-environment
 
@@ -44,7 +44,7 @@ Source2:	sysctl.minit.c
 Source3:	elito-genfiles.c
 Source4:	elito-wait-for-file.c
 Source5:	elito-load-modules
-Source10:	00-varfs.txt
+Source10:	00-varfs.conf
 %{?with_dietlibc:BuildRequires:	%{ELITO_RPMNAME dietlibc}}
 %ELITOSYS_HEADERS
 
@@ -77,7 +77,7 @@ $D %__elito_cc %elito_cflags %elito_ldflags -Wall -W -std=c99 %SOURCE4 -o elito-
 %install
 rm -rf $RPM_BUILD_ROOT
 
-mkdir -p $RPM_BUILD_ROOT{%_elito_sysconfdir,%_elitosys_sbindir,%_elitosys_bindir,%_elitosys_sysconfdir/files.d}
+mkdir -p $RPM_BUILD_ROOT{%_elito_sysconfdir,%_elitosys_sbindir,%_elitosys_bindir,%_elitosys_sysconfdir/tmpfiles.d}
 
 f=%_sourcedir/configure.cache.%elitoarch
 sed -e 's!@ELITO_BINDIR@!%_elito_bindir!g' \
@@ -100,7 +100,7 @@ install -p -m0755 \
 	redir-outerr elito-genfiles elito-wait-for-file \
 	$RPM_BUILD_ROOT%_elitosys_bindir/
 
-install -p -m0644 %SOURCE10 $RPM_BUILD_ROOT%_elitosys_sysconfdir/files.d/
+install -p -m0644 %SOURCE10 $RPM_BUILD_ROOT%_elitosys_sysconfdir/tmpfiles.d/
 %elito_installfixup fssetup
 %endif
 
@@ -119,7 +119,7 @@ rm -rf $RPM_BUILD_ROOT
   %defattr(-,root,root,-)
   %_elitosys_sbindir/*
   %_elitosys_bindir/*
-  %_elitosys_sysconfdir/files.d/*
+  %_elitosys_sysconfdir/tmpfiles.d/*
 %endif
 
 %changelog

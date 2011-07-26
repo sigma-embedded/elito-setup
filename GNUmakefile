@@ -1,6 +1,6 @@
 bindir =	/bin
 sbindir =	/sbin
-filesdir =	/etc/files.d
+filesdir =	/etc/tmpfiles.d
 
 INSTALL =	install
 INSTALL_PROG =	$(INSTALL) -D -p -m 0755
@@ -15,7 +15,7 @@ diet_progs =			\
 	redir-outerr		\
 	sysctl.minit
 
-bin_targets = 	\
+bin_targets = \
 	elito-genfiles		\
 	elito-wait-for-file	\
 	redir-outerr		\
@@ -46,7 +46,7 @@ install:	${_targets}
 
 clean:	local-clean
 local-clean:
-	rm -f ${diet_progs} 
+	rm -f ${diet_progs}
 
 tag build clean dist:
 	$(MAKE) -f Makefile $@
@@ -62,5 +62,3 @@ $(_files_targets): $(DESTDIR)$(filesdir)/% : %
 
 $(diet_progs): % : %.c
 	$(DIET) $(CC) -std=c99 $(CFLAGS) $(LDFLAGS) $< -o $@
-
-

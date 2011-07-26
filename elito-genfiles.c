@@ -154,7 +154,7 @@ token_to_uint(struct token const *tk, int base, unsigned long (*xform)(char cons
 static char const *
 do_file(char const *buf, char const *end_buf)
 {
-	struct token		args[4];
+	struct token		args[5];
 	char const		*name;
 	mode_t			mode;
 	uid_t			uid;
@@ -190,7 +190,7 @@ do_file(char const *buf, char const *end_buf)
 static char const *
 do_dir(char const *buf, char const *end_buf)
 {
-	struct token		args[4];
+	struct token		args[5];
 	char const		*name;
 	mode_t			mode;
 	uid_t			uid;
@@ -327,6 +327,8 @@ static struct {
 } const COMMANDS[] = {
 	{ "file",  do_file },
 	{ "dir",   do_dir },
+	{ "f",     do_file },
+	{ "d",     do_dir },
 	{ "nod",   do_node },
 	{ "pipe",  do_pipe },
 	{ "slink", do_slink },
