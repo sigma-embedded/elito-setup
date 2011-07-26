@@ -26,7 +26,7 @@ sbin_targets =	\
 	elito-load-modules
 
 files_targets = \
-	00-varfs.txt
+	00-varfs.conf
 
 _bin_targets =		$(addprefix $(DESTDIR)$(bindir)/,$(bin_targets))
 _sbin_targets =		$(addprefix $(DESTDIR)$(sbindir)/,$(sbin_targets))
@@ -34,7 +34,7 @@ _files_targets =	$(addprefix $(DESTDIR)$(filesdir)/,$(files_targets))
 _targets =		$(_bin_targets) $(_sbin_targets) $(_files_targets)
 
 DIST_FILES =		$(addsuffix .c,$(diet_progs))	\
-			00-varfs.txt			\
+			00-varfs.conf			\
 			elito-load-modules		\
 			GNUmakefile
 export DIST_FILES
