@@ -22,11 +22,9 @@ bin_targets = \
 
 sbin_targets =	\
 	init.wrapper		\
-	sysctl.minit		\
-	elito-load-modules
+	sysctl.minit
 
-files_targets = \
-	00-varfs.conf
+files_targets =
 
 _bin_targets =		$(addprefix $(DESTDIR)$(bindir)/,$(bin_targets))
 _sbin_targets =		$(addprefix $(DESTDIR)$(sbindir)/,$(sbin_targets))
@@ -34,8 +32,6 @@ _files_targets =	$(addprefix $(DESTDIR)$(filesdir)/,$(files_targets))
 _targets =		$(_bin_targets) $(_sbin_targets) $(_files_targets)
 
 DIST_FILES =		$(addsuffix .c,$(diet_progs))	\
-			00-varfs.conf			\
-			elito-load-modules		\
 			GNUmakefile
 export DIST_FILES
 
@@ -44,12 +40,8 @@ all:	$(diet_progs)
 install:	${_targets}
 	echo $<
 
-clean:	local-clean
-local-clean:
+clean:
 	rm -f ${diet_progs}
-
-tag build clean dist:
-	$(MAKE) -f Makefile $@
 
 $(_bin_targets): $(DESTDIR)$(bindir)/% : %
 	$(INSTALL_PROG) '$<' '$@'
@@ -61,4 +53,4 @@ $(_files_targets): $(DESTDIR)$(filesdir)/% : %
 	$(INSTALL_DATA) '$<' '$@'
 
 $(diet_progs): % : %.c
-	$(DIET) $(CC) -std=c99 $(CFLAGS) $(LDFLAGS) $< -o $@
+	$(DIET) $(CC) -std=c99 $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) $< -o $@
