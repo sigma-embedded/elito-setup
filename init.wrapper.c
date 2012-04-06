@@ -1,28 +1,350 @@
 #define _GNU_SOURCE
+#define _ATFILE_SOURCE
 
 #include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+#include <errno.h>
 #include <unistd.h>
-#include <sys/mount.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
+#include <sys/fcntl.h>
+#include <sys/mman.h>
+#include <sys/mount.h>
+#include <sys/sendfile.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <sys/vfs.h>
+
+#include <dirent.h>
+
+#ifndef NFS_SUPER_MAGIC
+#  define NFS_SUPER_MAGIC	0x6969
+#endif
 
 #ifndef TMPFS_MAGIC
 #  define TMPFS_MAGIC	0x01021994
 #endif
 
-int main(int argc, char *argv[])
+#ifndef SYSTEMD_TEMPLATE_DIR
+#  define SYSTEMD_TEMPLATE_DIR	"/usr/share/elito-systemd"
+#endif
+
+#ifndef SYSTEMD_INIT_PROG
+#  define SYSTEMD_INIT_PROG	"/lib/systemd/systemd"
+#endif
+
+struct mountpoint_desc {
+	char const	*source;
+	char const	*target;
+	char const 	*type;
+	char const	*options;
+	unsigned long	flags;
+};
+
+static struct mountpoint_desc const	G_MOUNTPOINTS[] = {
+	{ "devtmpfs", "/dev", "tmpfs", "size=512k,mode=755", MS_NOSUID },
+	{ "proc", "/proc", "proc", NULL, MS_NOSUID|MS_NODEV|MS_NOEXEC },
+};
+
+static struct mountpoint_desc const	G_MOUNTPOINTS_SYSTEMD[] = {
+	{ "tmpfs", "/run", "tmpfs", "mode=755", MS_NOSUID|MS_NODEV },
+};
+
+#define ARRAY_SIZE(_a)	(sizeof(_a) / sizeof((_a)[0]))
+
+inline static bool enable_systemd(void)
 {
+#ifdef ENABLE_SYSTEMD
+	return true;
+#else
+	return false;
+#endif
+}
+
+inline static bool is_nfs_ro_boot(void)
+{
+	static int	res = -1;
 	struct statfs	st;
 
-	seteuid(0);
-	setegid(0);
+	if (res == -1) {
+		if (statfs("/", &st) < 0)
+			abort();
 
-	if ((statfs("/dev", &st) < 0 || st.f_type != TMPFS_MAGIC) &&
-	    (mount("none", "/dev", "tmpfs", 0, "size=512k")==-1 ||
-	     mknod("/dev/console", 0600 | S_IFCHR, makedev(5,1))==-1 ||
-	     mknod("/dev/null",    0666 | S_IFCHR, makedev(1,3))==-1))
+		res = ((st.f_type == NFS_SUPER_MAGIC ? 1 : 0) &&
+		       (access("/", W_OK) < 0) &&
+			errno == EROFS);
+	}
+
+	return res;
+}
+
+static void xclose(int fd)
+{
+	if (fd != -1)
+		close(fd);
+}
+
+static bool is_mount_point(char const *path)
+{
+	struct stat	st;
+	struct stat	st_parent;
+	char		tmp[strlen(path) + sizeof("/..")];
+	char		*p;
+	size_t		l;
+
+	if (lstat(path, &st) < 0)
+		return false;
+
+	l = strlen(path);
+	memcpy(tmp, path, l+1);
+	while (l > 0 && tmp[l-1] == '/')
+		--l;
+	tmp[l] = '\0';
+
+	p = strrchr(tmp, '/');
+	if (p == NULL)
+		strcpy(tmp, "..");
+	else if (p == tmp)
+		/* handle mountpoints directly below / */
+		p[1] = '\0';
+	else
+		p[0] = '\0';
+
+	if (lstat(tmp, &st_parent) < 0)
+		return false;
+
+	return st.st_dev != st_parent.st_dev;
+}
+
+static int mount_one(struct mountpoint_desc const *desc)
+{
+	if (is_mount_point(desc->target))
+		return 1;
+
+	return mount(desc->source, desc->target, desc->type,
+		     desc->flags, desc->options) == -1 ? -1 : 0;
+}
+
+static int mount_set(int *mres,
+		     struct mountpoint_desc const descs[],
+		     size_t cnt)
+{
+	size_t		i;
+	for (i = 0; i < cnt; ++i) {
+		int	rc;
+		rc = mount_one(&descs[i]);
+
+		if (rc < 0)
+			return rc;
+
+		if (mres)
+			mres[i] = rc;
+	}
+
+	return 0;
+}
+
+static bool copy_reg_fd(int src, int dst, off_t len)
+{
+	fallocate(dst, 0, 0, len);	/* ignore errors */
+
+#if 0
+	int	rc = ftruncate(dst, len);
+	void	*src_mem = mmap(NULL, len, PROT_READ, MAP_SHARED, src, 0);
+	void	*dst_mem = mmap(NULL, len, PROT_WRITE, MAP_SHARED, dst, 0);
+	bool	res = false;
+
+	if (rc < 0 || !src_mem || !dst_mem)
+		goto out;
+
+	memcpy(dst_mem, src_mem, len);
+	res = true;
+
+out:
+	if (dst_mem)
+		munmap(dst_mem, len);
+	if (src_mem)
+		munmap(src_mem, len);
+
+	return res;
+#else
+	return sendfile(dst, src, NULL, len) == len;
+#endif
+}
+
+static bool copy_dir_fd(int src, int dst)
+{
+	DIR		*src_dir = fdopendir(dup(src));
+	struct dirent	*ent;
+	bool		res = false;
+
+	if (!src_dir)
+		goto out;
+
+	while ((ent = readdir(src_dir))) {
+		struct stat	st;
+		int		rc;
+		mode_t		file_mode;
+		bool		need_mode = false;
+		bool		need_owner = false;
+
+		if (ent->d_name[0] == '.' &&
+		    ((ent->d_name[1] == '\0') ||
+		     (ent->d_name[1] == '.' && ent->d_name[2] == '\0')))
+			continue;
+
+
+		rc = fstatat(src, ent->d_name, &st, AT_SYMLINK_NOFOLLOW);
+		if (rc < 0)
+			goto out;
+
+		file_mode = st.st_mode & (S_ISUID | S_ISGID | S_ISVTX |
+					  0777);
+
+		unlinkat(dst, ent->d_name, 0); /* ignore errors */
+
+		if (S_ISDIR(st.st_mode)) {
+			rc = mkdirat(dst, ent->d_name, 0700);
+			if (rc == 0) {
+				need_mode = true;
+				need_owner = true;
+			} else if (errno == EEXIST)
+				rc = 0;
+		}
+
+		if (rc < 0)
+			goto out;
+
+		if (S_ISDIR(st.st_mode)) {
+			int	new_src = openat(src, ent->d_name,
+						 O_DIRECTORY|O_RDONLY|O_NOFOLLOW);
+			int	new_dst = openat(dst, ent->d_name,
+						 O_DIRECTORY|O_RDONLY|O_NOFOLLOW);
+
+			if (new_src == -1 ||
+			    new_dst == -1 ||
+			    !copy_dir_fd(new_src, new_dst))
+				rc = -1;
+
+			xclose(new_dst);
+			xclose(new_src);
+		} else if (S_ISLNK(st.st_mode)) {
+			ssize_t	l;
+			char	buf[PATH_MAX + 1];
+
+			l = readlinkat(src, ent->d_name, buf, sizeof buf);
+			if (l < 0 || l == sizeof buf) {
+				buf[0] = '\0';
+				rc = -1;
+			} else
+				buf[l] = '\0';
+
+			rc = symlinkat(buf, dst, ent->d_name);
+
+			need_owner = true;
+		} else if (S_ISREG(st.st_mode)) {
+			int	new_src = openat(src, ent->d_name,
+						 O_RDONLY|O_NOFOLLOW);
+			int	new_dst = openat(dst, ent->d_name,
+						 O_WRONLY|O_CREAT|O_TRUNC|
+						 O_NOFOLLOW, 0600);
+
+			if (new_src == -1 ||
+			    new_dst == -1 ||
+			    !copy_reg_fd(new_src, new_dst, st.st_size))
+				rc = -1;
+
+			xclose(new_dst);
+			xclose(new_src);
+
+			need_mode = true;
+			need_owner = true;
+		} else
+			continue;	/* noop; unsupported filetype */
+
+		if (rc >= 0 && need_owner)
+			rc = fchownat(dst, ent->d_name, st.st_uid, st.st_gid,
+				      AT_SYMLINK_NOFOLLOW);
+
+		if (rc >= 0 && need_mode)
+			rc = fchmodat(dst, ent->d_name, file_mode,
+				      AT_SYMLINK_NOFOLLOW);
+
+		if (rc < 0)
+			goto out;
+	}
+
+	res = true;
+
+out:
+	closedir(src_dir);
+	return res;
+}
+
+static bool copy_dir(char const *src, char const *dst, bool strict)
+{
+	int	src_fd = open(src, O_DIRECTORY|O_RDONLY|O_NOFOLLOW);
+	int	dst_fd = open(dst, O_DIRECTORY|O_RDONLY|O_NOFOLLOW);
+	int	res;
+
+	if (src_fd != -1 && dst_fd != -1)
+		res = copy_dir_fd(src_fd, dst_fd);
+	else
+		res = !strict;
+
+	xclose(dst_fd);
+	xclose(src_fd);
+
+	return res;
+}
+
+static bool setup_systemd(void)
+{
+	if (!enable_systemd())
+		return true;
+
+	if (mount_set(NULL, G_MOUNTPOINTS_SYSTEMD,
+		      ARRAY_SIZE(G_MOUNTPOINTS_SYSTEMD)) < 0)
+		return false;
+
+	mkdir("/run/systemd", 0755);
+	mkdir("/run/systemd/system", 0755);
+
+	if (is_nfs_ro_boot() &&
+	    !copy_dir(SYSTEMD_TEMPLATE_DIR "/nfs", "/run/systemd/system", false))
+		return false;
+
+	return true;
+}
+
+int main(int argc, char *argv[])
+{
+	int		mres[ARRAY_SIZE(G_MOUNTPOINTS)];
+
+	setresuid(0,0,0);
+	setresgid(0,0,0);
+	umask(0);
+
+	if (mount_set(mres, G_MOUNTPOINTS, ARRAY_SIZE(G_MOUNTPOINTS)) < 0)
+		return EXIT_FAILURE;
+
+	/* HACK: assume that element #0 is the devtmpfs entry */
+	switch (mres[0]) {
+	case 0:
+		if (mknod("/dev/console", 0600 | S_IFCHR, makedev(5,1))==-1 ||
+		    mknod("/dev/null",    0666 | S_IFCHR, makedev(1,3))==-1)
+			return EXIT_FAILURE;
+		break;
+
+	case 1:
+		/* noop; already handled by something else */
+		break;
+
+	default:
+		return EXIT_FAILURE;
+	}
+
+	if (!setup_systemd())
 		return EXIT_FAILURE;
 
 	close(0);
@@ -34,6 +356,11 @@ int main(int argc, char *argv[])
 	    dup2(1,2)==-1)
 		return EXIT_FAILURE;
 
-	execvp("/sbin/init.wrapped", argv);
+	umask(022);
+
+	execv("/sbin/init.wrapped", argv);
+	if (enable_systemd())
+		execv(SYSTEMD_INIT_PROG, argv);
+
 	return EXIT_FAILURE;
 }
