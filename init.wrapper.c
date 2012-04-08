@@ -307,6 +307,10 @@ static bool setup_systemd(void)
 		      ARRAY_SIZE(G_MOUNTPOINTS_SYSTEMD)) < 0)
 		return false;
 
+	if (is_nfs_ro_boot())
+		xclose(open("/run/nfs-ro-boot", O_CREAT|O_NOFOLLOW|O_WRONLY,
+			    0644));
+
 	mkdir("/run/systemd", 0755);
 	mkdir("/run/systemd/system", 0755);
 
