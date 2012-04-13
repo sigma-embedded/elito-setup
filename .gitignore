@@ -1,1 +1,6 @@
 .tmp
+/elito-genfiles
+/elito-wait-for-file
+/init.wrapper
+/redir-outerr
+/sysctl.minit
