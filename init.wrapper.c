@@ -266,9 +266,15 @@ static bool copy_dir_fd(int src, int dst)
 			rc = fchownat(dst, ent->d_name, st.st_uid, st.st_gid,
 				      AT_SYMLINK_NOFOLLOW);
 
-		if (rc >= 0 && need_mode)
+		if (rc >= 0 && need_mode) {
 			rc = fchmodat(dst, ent->d_name, file_mode,
 				      AT_SYMLINK_NOFOLLOW);
+
+			/* HACK: AT_SYMLINK_NOFOLLOW is not supported for
+			 * fchmodat */
+			if (rc < 0 && errno == ENOTSUP)
+				rc = fchmodat(dst, ent->d_name, file_mode, 0);
+		}
 
 		if (rc < 0)
 			goto out;
