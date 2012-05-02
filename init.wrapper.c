@@ -61,7 +61,7 @@ inline static bool enable_systemd(void)
 #endif
 }
 
-inline static bool is_nfs_ro_boot(void)
+inline static bool is_nfs_boot(void)
 {
 	static int	res = -1;
 	struct statfs	st;
@@ -70,10 +70,19 @@ inline static bool is_nfs_ro_boot(void)
 		if (statfs("/", &st) < 0)
 			abort();
 
-		res = ((st.f_type == NFS_SUPER_MAGIC ? 1 : 0) &&
-		       (access("/", W_OK) < 0) &&
-			errno == EROFS);
+		res = (st.f_type == NFS_SUPER_MAGIC) ? 1 : 0;
 	}
+
+	return res > 0;
+}
+
+inline static bool is_nfs_ro_boot(void)
+{
+	bool	res = is_nfs_boot();
+
+	if (res)
+		res = (access("/", W_OK) < 0 && 
+		       (errno == EROFS || errno == EACCES));
 
 	return res;
 }
