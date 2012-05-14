@@ -61,6 +61,11 @@ struct bootoptions {
 	}		buffers;
 };
 
+static void write_msg(int fd, char const *msg)
+{
+	write(fd, msg, strlen(msg));
+}
+
 static char *find_cmdline_option(char *buf, char const *key)
 {
 	char		*ptr;
@@ -190,13 +195,13 @@ int main(int argc, char *argv[]) {
 	char const	*boot_dev = NULL;
 	int		sock;
 	size_t		i;
+	int		kmsg_fd;
 
 	struct sockaddr_nl		snl = {
 		.nl_family	=  AF_NETLINK,
 		.nl_pid		=  getpid(),
 		.nl_groups	=  0xffffffffu,
 	};
-
 
 	setresuid(0,0,0);
 	setresgid(0,0,0);
@@ -212,7 +217,7 @@ int main(int argc, char *argv[]) {
 	open("/dev/console", O_RDONLY);
 	open("/dev/console", O_WRONLY);
 	open("/dev/console", O_WRONLY);
-	
+
 	if (get_boot_device(&bootopts) < 0)
 		return EXIT_FAILURE;
 
@@ -223,6 +228,9 @@ int main(int argc, char *argv[]) {
 
 	sock = socket(AF_NETLINK, SOCK_RAW, NETLINK_KOBJECT_UEVENT);
 	bind(sock, (void *)&snl, sizeof snl);
+
+	kmsg_fd = open("/dev/kmsg", O_WRONLY);
+	write_msg(kmsg_fd, "<7>Waiting for bootdevice\n");
 
 	num_names = scandir(".", &namelist, NULL, NULL);
 	if (num_names >= 0) {
@@ -288,14 +296,10 @@ int main(int argc, char *argv[]) {
 		return EXIT_FAILURE;
 	}
 
-	/* \todo: add diagnostics */
-	unlink("/dev/console");
-	unlink("/init");
-
 	for (i = ARRAY_SIZE(G_MOUNTPOINTS); i > 0; --i) {
 		char const	*mp = G_MOUNTPOINTS[i-1].target;
 
-		if (mount(mp, mp+1, "none", MS_MOVE, NULL) < 0) {
+		if (mount(mp, mp+1, NULL, MS_MOVE, NULL) < 0) {
 			perror("mount(<MS_MOVE>)");
 			return EXIT_FAILURE;
 		}
@@ -304,25 +308,31 @@ int main(int argc, char *argv[]) {
 		rmdir(mp);
 	}
 
-	if (mount(".", "/", "none", MS_MOVE, NULL) < 0) {
+	/* \todo: add diagnostics */
+	unlink("/dev/console");
+	unlink("/init");
+	rmdir("/dev");
+
+	if (mount(".", "/", NULL, MS_MOVE, NULL) < 0) {
 		perror("mount(\".\", \"/\", MS_MOVE)");
 		return EXIT_FAILURE;
 	}
 
-	if (chroot(".") < 0) {
+	if (chroot(".") < 0 || chdir("/") < 0) {
 		perror("chroot()");
 		return EXIT_FAILURE;
 	}
 
 	if (enable_systemd()) {
 		/* \todo: add diagnostics */
-		mkdir("/run/initramfs", 0755);
-		close(open("/run/initramfs/elito-mmc-boot", 
-			   O_CREAT|O_WRONLY, 0644));
+		close(open("/run/elito-mmc-boot", O_CREAT|O_WRONLY, 0644));
 	}
 
+	write_msg(kmsg_fd, "<5>jumping into real init\n");
+	close(kmsg_fd);
+
 	argv[0] = "/sbin/init";
-	execv("/sbin/init", argv);
+	execve("/sbin/init", argv, environ);
 	perror("execv()");
 	return EXIT_FAILURE;
 }
