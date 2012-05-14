@@ -6,19 +6,21 @@ INSTALL =	install
 INSTALL_PROG =	$(INSTALL) -D -p -m 0755
 INSTALL_DATA =	$(INSTALL) -D -p -m 0644
 
-CFLAGS = -Wall -W -std=gnu99 -Wp,-D_FORTIFY_SOURCE=2
+CFLAGS = -Wall -W -std=gnu99 -Wp,-D_FORTIFY_SOURCE=2 -DENABLE_SYSTEMD
 
 diet_progs =			\
 	elito-genfiles		\
 	elito-wait-for-file	\
 	init.wrapper		\
 	redir-outerr		\
-	sysctl.minit
+	sysctl.minit		\
+	elito-mmc-boot
 
 bin_targets = \
 	elito-genfiles		\
 	elito-wait-for-file	\
 	redir-outerr		\
+	elito-mmc-boot
 
 sbin_targets =	\
 	init.wrapper		\

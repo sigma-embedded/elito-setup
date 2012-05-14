@@ -1,5 +1,6 @@
 .tmp
 /elito-genfiles
+/elito-mmc-boot
 /elito-wait-for-file
 /init.wrapper
 /redir-outerr
