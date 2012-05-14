@@ -54,5 +54,7 @@ $(_sbin_targets): $(DESTDIR)$(sbindir)/% : %
 $(_files_targets): $(DESTDIR)$(filesdir)/% : %
 	$(INSTALL_DATA) '$<' '$@'
 
+elito-mmc-boot:	LDFLAGS += -static
+
 $(diet_progs): % : %.c
 	$(DIET) $(CC) -std=c99 $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) $< -o $@
