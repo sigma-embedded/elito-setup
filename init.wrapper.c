@@ -1,21 +1,21 @@
 #define _GNU_SOURCE
 #define _ATFILE_SOURCE
+#define _FILE_OFFSET_BITS 64
 
 #include <stdlib.h>
 #include <stdbool.h>
-#include <string.h>
 #include <errno.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/fcntl.h>
 #include <sys/mman.h>
-#include <sys/mount.h>
 #include <sys/sendfile.h>
-#include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/vfs.h>
 
 #include <dirent.h>
+
+#include "util.h"
 
 #ifndef NFS_SUPER_MAGIC
 #  define NFS_SUPER_MAGIC	0x6969
@@ -33,14 +33,6 @@
 #  define SYSTEMD_INIT_PROG	"/lib/systemd/systemd"
 #endif
 
-struct mountpoint_desc {
-	char const	*source;
-	char const	*target;
-	char const 	*type;
-	char const	*options;
-	unsigned long	flags;
-};
-
 static struct mountpoint_desc const	G_MOUNTPOINTS[] = {
 	{ "devtmpfs", "/dev", "tmpfs", "size=512k,mode=755", MS_NOSUID },
 	{ "proc", "/proc", "proc", NULL, MS_NOSUID|MS_NODEV|MS_NOEXEC },
@@ -49,17 +41,6 @@ static struct mountpoint_desc const	G_MOUNTPOINTS[] = {
 static struct mountpoint_desc const	G_MOUNTPOINTS_SYSTEMD[] = {
 	{ "tmpfs", "/run", "tmpfs", "mode=755", MS_NOSUID|MS_NODEV },
 };
-
-#define ARRAY_SIZE(_a)	(sizeof(_a) / sizeof((_a)[0]))
-
-inline static bool enable_systemd(void)
-{
-#ifdef ENABLE_SYSTEMD
-	return true;
-#else
-	return false;
-#endif
-}
 
 inline static bool is_nfs_boot(void)
 {
@@ -91,66 +72,6 @@ static void xclose(int fd)
 {
 	if (fd != -1)
 		close(fd);
-}
-
-static bool is_mount_point(char const *path)
-{
-	struct stat	st;
-	struct stat	st_parent;
-	char		tmp[strlen(path) + sizeof("/..")];
-	char		*p;
-	size_t		l;
-
-	if (lstat(path, &st) < 0)
-		return false;
-
-	l = strlen(path);
-	memcpy(tmp, path, l+1);
-	while (l > 0 && tmp[l-1] == '/')
-		--l;
-	tmp[l] = '\0';
-
-	p = strrchr(tmp, '/');
-	if (p == NULL)
-		strcpy(tmp, "..");
-	else if (p == tmp)
-		/* handle mountpoints directly below / */
-		p[1] = '\0';
-	else
-		p[0] = '\0';
-
-	if (lstat(tmp, &st_parent) < 0)
-		return false;
-
-	return st.st_dev != st_parent.st_dev;
-}
-
-static int mount_one(struct mountpoint_desc const *desc)
-{
-	if (is_mount_point(desc->target))
-		return 1;
-
-	return mount(desc->source, desc->target, desc->type,
-		     desc->flags, desc->options) == -1 ? -1 : 0;
-}
-
-static int mount_set(int *mres,
-		     struct mountpoint_desc const descs[],
-		     size_t cnt)
-{
-	size_t		i;
-	for (i = 0; i < cnt; ++i) {
-		int	rc;
-		rc = mount_one(&descs[i]);
-
-		if (rc < 0)
-			return rc;
-
-		if (mres)
-			mres[i] = rc;
-	}
-
-	return 0;
 }
 
 static bool copy_reg_fd(int src, int dst, off_t len)
