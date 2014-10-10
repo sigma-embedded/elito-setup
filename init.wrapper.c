@@ -261,26 +261,6 @@ static bool write_str(int fd, char const *str)
 	return write_all(fd, str, strlen(str));
 }
 
-static bool systemd_setup_netboot_device(char const *dev, size_t dev_len)
-{
-	int	fd = open("/run/systemd/network/99-netboot.network",
-			  O_WRONLY|O_CREAT, 0644);
-	bool	res = false;
-
-	if (fd >= 0) {
-		res = (write_str(fd, "[Match]\nName=") &&
-		       write_all(fd, dev, dev_len) &&
-		       write_str(fd,
-				 "\n"
-				 "[DHCP]\n"
-				 "CriticalConnection=yes\n"));
-		close(fd);
-	}
-
-
-	return res;
-}
-
 static bool setup_systemd(void)
 {
 	if (!enable_systemd())
@@ -297,14 +277,6 @@ static bool setup_systemd(void)
 	mkdir("/run/systemd", 0755);
 	mkdir("/run/systemd/system", 0755);
 	mkdir("/run/systemd/journal", 0755);
-	mkdir("/run/systemd/network", 0755);
-
-
-	/* todo: detect netdev from kernel cmdline instead of using static
-	 * 'eth0' */
-	if (is_nfs_boot() &&
-	    !systemd_setup_netboot_device("eth0", 4))
-		return false;
 
 	if (is_nfs_ro_boot() &&
 	    !copy_dir(SYSTEMD_TEMPLATE_DIR "/nfs", "/run/systemd/system", false))
