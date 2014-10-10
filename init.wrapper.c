@@ -312,9 +312,6 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
-	if (!setup_systemd())
-		return EXIT_FAILURE;
-
 	close(0);
 	close(1);
 	close(2);
@@ -322,6 +319,9 @@ int main(int argc, char *argv[])
 	if (open("/dev/console", O_RDONLY)!=0 ||
 	    open("/dev/console", O_WRONLY)!=1 ||
 	    dup2(1,2)==-1)
+		return EXIT_FAILURE;
+
+	if (!setup_systemd())
 		return EXIT_FAILURE;
 
 	umask(022);
