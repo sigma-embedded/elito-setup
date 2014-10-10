@@ -6,7 +6,8 @@ INSTALL =	install
 INSTALL_PROG =	$(INSTALL) -D -p -m 0755
 INSTALL_DATA =	$(INSTALL) -D -p -m 0644
 
-CFLAGS = -Wall -W -std=gnu99 -Wp,-D_FORTIFY_SOURCE=2 -DENABLE_SYSTEMD
+CFLAGS = -Wall -W  -Wno-unused-parameter -std=gnu99 \
+	-Wp,-D_FORTIFY_SOURCE=2 -DENABLE_SYSTEMD -O2
 
 diet_progs =			\
 	elito-genfiles		\
