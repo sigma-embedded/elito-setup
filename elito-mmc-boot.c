@@ -229,7 +229,7 @@ int main(int argc, char *argv[]) {
 	bind(sock, (void *)&snl, sizeof snl);
 
 	kmsg_fd = open("/dev/kmsg", O_WRONLY);
-	write_msg(kmsg_fd, "<7>Waiting for bootdevice\n");
+	write_msg(kmsg_fd, "<4>Waiting for bootdevice\n");
 
 	num_names = scandir(".", &namelist, NULL, NULL);
 	if (num_names >= 0) {
