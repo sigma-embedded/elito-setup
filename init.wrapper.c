@@ -59,11 +59,15 @@ inline static bool is_nfs_boot(void)
 
 inline static bool is_nfs_ro_boot(void)
 {
-	bool	res = is_nfs_boot();
+	static int	res = -1;
 
-	if (res)
-		res = (access("/", W_OK) < 0 && 
-		       (errno == EROFS || errno == EACCES));
+	if (res == -1) {
+		if (!is_nfs_boot())
+			res = 0;
+		else
+			res = (access("/", W_OK) < 0 &&
+			       (errno == EROFS || errno == EACCES));
+	}
 
 	return res;
 }

@@ -82,7 +82,6 @@ static int get_boot_device(struct bootoptions *opts)
 	char		*buffer = opts->buffers.cmdline;
 	int		fd;
 	char		*root;
-	char		*part;
 	char		*rootfstype;
 	char		*ptr;
 	ssize_t		l;
