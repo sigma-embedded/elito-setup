@@ -238,6 +238,29 @@ static bool copy_dir(char const *src, char const *dst, bool strict)
 	return res;
 }
 
+static bool write_all(int fd, void const *buf, size_t len)
+{
+	while (len > 0) {
+		ssize_t		l = write(fd, buf, len);
+
+		if (l > 0) {
+			buf += l;
+			len -= l;
+		} else if (l < 0 && errno == EINTR) {
+			continue;
+		} else {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+static bool write_str(int fd, char const *str)
+{
+	return write_all(fd, str, strlen(str));
+}
+
 static bool setup_systemd(void)
 {
 	if (!enable_systemd())
