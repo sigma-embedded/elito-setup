@@ -277,9 +277,13 @@ static bool setup_systemd(void)
 	mkdir("/run/systemd", 0755);
 	mkdir("/run/systemd/system", 0755);
 	mkdir("/run/systemd/journal", 0755);
+	mkdir("/run/tmpfiles.d", 0755);
 
 	if (is_nfs_ro_boot() &&
-	    !copy_dir(SYSTEMD_TEMPLATE_DIR "/nfs", "/run/systemd/system", false))
+	    !(copy_dir(SYSTEMD_TEMPLATE_DIR "/nfs",
+		       "/run/systemd/system", false) &&
+	      copy_dir(SYSTEMD_TEMPLATE_DIR "/tmpfiles.nfs-ro",
+		       "/run/tmpfiles.d", false)))
 		return false;
 
 	return true;
